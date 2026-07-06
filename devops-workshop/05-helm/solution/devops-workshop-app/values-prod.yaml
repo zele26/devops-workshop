@@ -1,0 +1,20 @@
+# Overrides applied on top of values.yaml when deploying to "production".
+# Usage: helm install ... -f values.yaml -f values-prod.yaml
+
+replicaCount: 5
+
+appVersion: "1.0.0"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60

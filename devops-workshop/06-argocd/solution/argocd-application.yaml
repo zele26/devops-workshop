@@ -1,0 +1,33 @@
+# Solution: ArgoCD Application manifest
+#
+# This tells ArgoCD: "watch this Git repo/path, and keep the cluster's
+# `devops-workshop` namespace matching whatever Helm renders from it."
+#
+# Replace <your-username> with your actual GitHub username before applying.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devops-workshop-app
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/<your-username>/devops-workshop-config.git
+    targetRevision: main
+    path: devops-workshop-app
+    helm:
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-workshop
+
+  syncPolicy:
+    automated:
+      prune: true      # remove resources that are no longer in Git
+      selfHeal: true    # revert any manual/out-of-band cluster changes
+    syncOptions:
+      - CreateNamespace=true

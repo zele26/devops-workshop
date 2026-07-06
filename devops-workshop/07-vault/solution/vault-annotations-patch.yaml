@@ -1,0 +1,24 @@
+# Solution: annotations added to the Pod template so the Vault Agent
+# Injector (a mutating webhook) automatically adds a sidecar that
+# fetches the secret and writes it to a local file inside the Pod.
+#
+# Apply this as an overlay on top of your Module 05 Helm-rendered
+# Deployment, or merge these annotations directly into
+# templates/deployment.yaml's `spec.template.metadata.annotations`.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-devops-workshop-app
+  namespace: devops-workshop
+spec:
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "devops-workshop-app"
+        vault.hashicorp.com/agent-inject-secret-db-creds: "secret/data/devops-workshop-app/db"
+        vault.hashicorp.com/agent-inject-template-db-creds: |
+          {{- with secret "secret/data/devops-workshop-app/db" -}}
+          DB_PASSWORD={{ .Data.data.password }}
+          {{- end -}}
