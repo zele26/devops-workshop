@@ -33,6 +33,10 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
+app.get("/version", (req, res) => {
+	res.json({ version: APP_VERSION } );
+        });
+
 app.get("/secret", (req, res) => {
   // In Module 07 (Vault) this value will be injected securely at runtime
   // instead of being set as a plain environment variable.
