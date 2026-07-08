@@ -1,0 +1,14 @@
+{
+  "name": "devops-workshop-app",
+  "version": "1.0.0",
+  "description": "A tiny Express app used as the running example throughout the DevOps workshop.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test test/index.test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

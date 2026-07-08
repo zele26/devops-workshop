@@ -1,0 +1,82 @@
+// ---- Solution Jenkinsfile for the DevOps Workshop sample app ----
+// Place this file at the ROOT of your sample-app repository
+// (i.e. sample-app/Jenkinsfile), not inside solution/.
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "devops-workshop-app"
+        IMAGE_TAG  = "build-${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Smoke Test the Image') {
+            steps {
+                sh """
+                    docker run -d -p 3100:3000 --name smoke-${BUILD_NUMBER} ${IMAGE_NAME}:${IMAGE_TAG}
+                    sleep 3
+                    curl -f http://localhost:3100/health
+                    docker stop smoke-${BUILD_NUMBER}
+                    docker rm smoke-${BUILD_NUMBER}
+                """
+            }
+        }
+
+        stage('Push Image') {
+            when {
+                branch 'main'
+            }
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKERHUB_USER',
+                    passwordVariable: 'DOCKERHUB_PASS'
+                )]) {
+                    sh """
+                        echo "\$DOCKERHUB_PASS" | docker login -u "\$DOCKERHUB_USER" --password-stdin
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} \$DOCKERHUB_USER/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push \$DOCKERHUB_USER/${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline succeeded: ${IMAGE_NAME}:${IMAGE_TAG}"
+        }
+        failure {
+            echo "Pipeline failed — check the stage logs above."
+        }
+        always {
+            sh "docker rm -f smoke-${BUILD_NUMBER} || true"
+        }
+    }
+}
