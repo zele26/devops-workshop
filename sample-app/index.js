@@ -22,7 +22,7 @@ const APP_VERSION = process.env.APP_VERSION || "1.0.0";
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Hello from the DevOps Workshop app!",
+    message: "Hey there! Welcome to the DevOps workshop app!",
     version: APP_VERSION,
     servedBy: os.hostname(), // useful later to SEE load-balancing across pods
     timestamp: new Date().toISOString(),
