@@ -41,16 +41,13 @@ pipeline {
         }
 
         stage('Smoke Test the Image') {
-            steps {
-                sh """
-                    docker run -d -p 3100:3000 --name smoke-${BUILD_NUMBER} ${IMAGE_NAME}:latest
-                    sleep 3
-                    curl -f http://localhost:3100/health
-                    docker stop smoke-${BUILD_NUMBER}
-                    docker rm smoke-${BUILD_NUMBER}
-                """
-            }
-        }
+    steps {
+        // We use --network host so localhost aligns perfectly inside the container environment
+        sh "docker run -d --name smoke-${BUILD_NUMBER} --network host devops-workshop-app:latest"
+        sh "sleep 5" 
+        sh "curl -f http://localhost:3000/health" // Notice we use 3000 here because it's native port
+    }
+}
 
         stage('Push Image') {
             when {
