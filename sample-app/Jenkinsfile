@@ -40,12 +40,20 @@ pipeline {
             }
         }
 
-        stage('Smoke Test the Image') {
+stage('Smoke Test the Image') {
     steps {
-        // We use --network host so localhost aligns perfectly inside the container environment
-        sh "docker run -d --name smoke-${BUILD_NUMBER} --network host devops-workshop-app:latest"
-        sh "sleep 5" 
-        sh "curl -f http://localhost:3000/health" // Notice we use 3000 here because it's native port
+        // 1. Run standard container on default bridge network (no host networking needed)
+        sh "docker run -d --name smoke-${BUILD_NUMBER} devops-workshop-app:latest"
+        
+        // 2. Give the app a few seconds to boot up safely
+        sh "sleep 5"
+        
+        // 3. Dynamically extract the internal container IP address and curl it on port 3000
+        sh '''
+            CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' smoke-${BUILD_NUMBER})
+            echo "Targeting Container IP: ${CONTAINER_IP}"
+            curl -f http://${CONTAINER_IP}:3000/health
+        '''
     }
 }
 
