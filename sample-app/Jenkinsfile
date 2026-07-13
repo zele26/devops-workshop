@@ -1,7 +1,4 @@
 // ---- Solution Jenkinsfile for the DevOps Workshop sample app ----
-// Place this file at the ROOT of your sample-app repository
-// (i.e. sample-app/Jenkinsfile), not inside solution/.
-
 pipeline {
     agent any
 
@@ -11,7 +8,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -36,26 +32,26 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t devops-workshop-app:latest sample-app/"
+                // We build and tag it as both 'latest' (for smoke testing) and the unique build number (for pushing)
+                sh "docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${IMAGE_TAG} sample-app/"
             }
         }
 
-stage('Smoke Test the Image') {
-    steps {
-        // 1. Run standard container on default bridge network (no host networking needed)
-        sh "docker run -d --name smoke-${BUILD_NUMBER} devops-workshop-app:latest"
-        
-        // 2. Give the app a few seconds to boot up safely
-        sh "sleep 5"
-        
-        // 3. Dynamically extract the internal container IP address and curl it on port 3000
-        sh '''
-            CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' smoke-${BUILD_NUMBER})
-            echo "Targeting Container IP: ${CONTAINER_IP}"
-            curl -f http://${CONTAINER_IP}:3000/health
-        '''
-    }
-}
+        stage('Smoke Test the Image') {
+            steps {
+                sh "docker run -d --name smoke-${BUILD_NUMBER} ${IMAGE_NAME}:latest"
+                
+                sh "sleep 5"
+                
+                // Using a double-quoted block here so Jenkins can naturally resolve ${BUILD_NUMBER} 
+                // while escaping \$CONTAINER_IP so Bash handles it.
+                sh """
+                    CONTAINER_IP=\$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' smoke-${BUILD_NUMBER})
+                    echo "Targeting Container IP: \$CONTAINER_IP"
+                    curl -f http://\$CONTAINER_IP:3000/health
+                """
+            }
+        }
 
         stage('Push Image') {
             when {
