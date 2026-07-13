@@ -20,13 +20,17 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
-            }
+                dir('sample-app'){
+                    sh 'npm install'
+                }
+            }     
         }
 
         stage('Test') {
-            steps {
-                sh 'npm test'
+           steps {
+                dir('sample-app'){
+                    sh 'npm test'
+                }
             }
         }
 
