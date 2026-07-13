@@ -40,5 +40,5 @@ test("GET / returns a message and a version", async () => {
 test("GET /health returns ok", async () => {
   const { status, body } = await get("/health");
   assert.strictEqual(status, 200);
-  assert.strictEqual(body.status, "ok");
+  assert.strictEqual(body.status, "broken-on-purpose");
 });
