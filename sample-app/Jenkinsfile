@@ -43,7 +43,7 @@ pipeline {
         stage('Smoke Test the Image') {
             steps {
                 sh """
-                    docker run -d -p 3100:3000 --name smoke-${BUILD_NUMBER} ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d -p 3100:3000 --name smoke-${BUILD_NUMBER} ${IMAGE_NAME}:latest
                     sleep 3
                     curl -f http://localhost:3100/health
                     docker stop smoke-${BUILD_NUMBER}
