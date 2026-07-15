@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-workshop-app-deployment
+  labels:
+    app: devops-workshop-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: devops-workshop-app
+  template:
+    metadata:
+      labels:
+        app: devops-workshop-app
+    spec:
+      containers:
+      - name: web-app
+        image: devops-workshop-app:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
